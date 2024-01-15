@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.FileWriter;
@@ -28,8 +29,11 @@ public class MainApp extends Application {
 
         BorderPane borderPane = new BorderPane();
 
+        borderPane.setStyle("-fx-background-color: #2E7D32;");
+
         // Crear tabla de tareas
         tablaTareas = new TableView<>();
+        tablaTareas.setStyle("-fx-background-color: #81C784;");
         TableColumn<Tarea, String> descripcionColumna = new TableColumn<>("Descripción");
         descripcionColumna.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
         descripcionColumna.setMinWidth(150); // Ajusta el ancho mínimo de la columna
@@ -44,18 +48,43 @@ public class MainApp extends Application {
 
         TableColumn<Tarea, Double> tiempoTranscurridoColumna = new TableColumn<>("Tiempo Transcurrido (s)");
         tiempoTranscurridoColumna.setCellValueFactory(new PropertyValueFactory<>("tiempoTranscurrido"));
-        tiempoTranscurridoColumna.setMinWidth(200); // Ajusta el ancho mínimo de la columna
+        tiempoTranscurridoColumna.setMinWidth(202); // Ajusta el ancho mínimo de la columna
 
         tablaTareas.getColumns().addAll(descripcionColumna, completadaColumna, tiempoColumna, tiempoTranscurridoColumna);
 
 
         Button btnAgregar = new Button("Agregar Tarea");
+        btnAgregar.setStyle(
+                "-fx-background-color: #0090ff;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 10px 20px;" +
+                        "-fx-border-radius: 5px;"
+        );
         btnAgregar.setOnAction(e -> agregarTarea());
 
+
         Button btnCompletar = new Button("Completar Tarea");
+        btnCompletar.setStyle(
+                "-fx-background-color: #4CAF50;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 10px 20px;" +
+                        "-fx-border-radius: 5px;"
+        );
         btnCompletar.setOnAction(e -> completarTareaSeleccionada());
 
         Button btnEliminar = new Button("Eliminar Tarea");
+        btnEliminar.setStyle(
+                "-fx-background-color: #e81818;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 10px 20px;" +
+                        "-fx-border-radius: 5px;"
+        );
         btnEliminar.setOnAction(e -> eliminarTareaSeleccionada());
 
 
@@ -64,7 +93,8 @@ public class MainApp extends Application {
         borderPane.setRight(btnCompletar);
         borderPane.setLeft(btnEliminar);
 
-        Scene scene = new Scene(borderPane, 747, 500);
+        Scene scene = new Scene(borderPane, 880, 500);
+        scene.setFill(Color.web("#2E7D32"));
         primaryStage.setScene(scene);
         primaryStage.show();
     }
