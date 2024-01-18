@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * La clase `MainApp` es la clase principal de la aplicación de Lista de Tareas.
@@ -105,11 +106,28 @@ public class MainApp extends Application {
         );
         btnEliminar.setOnAction(e -> eliminarTareaSeleccionada());
 
+
+        Button btnTareasPorTurnos = new Button("Tareas por turnos");
+        btnTareasPorTurnos.setStyle(
+                "-fx-background-color: #FFA000;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-padding: 10px 20px;" +
+                        "-fx-border-radius: 5px;"
+        );
+        btnTareasPorTurnos.setOnAction(e -> agregarTareasPorTurnos());
+
+
         // Configuración del diseño de la interfaz y visualización
         borderPane.setCenter(tablaTareas);
         borderPane.setBottom(btnAgregar);
         borderPane.setRight(btnCompletar);
         borderPane.setLeft(btnEliminar);
+        borderPane.setTop(btnTareasPorTurnos);
+
+
+
 
         Scene scene = new Scene(borderPane, 880, 500);
         scene.setFill(Color.web("#2E7D32"));
@@ -128,20 +146,133 @@ public class MainApp extends Application {
         dialog.setHeaderText(null);
         dialog.setContentText("Ingrese la descripción de la tarea:");
 
+        // Cuadro de diálogo para preguntar el número de hilos
+        TextInputDialog numHilosDialog = new TextInputDialog();
+        numHilosDialog.setTitle("Número de personas");
+        numHilosDialog.setHeaderText(null);
+        numHilosDialog.setContentText("Ingrese el número de personas para realizar la tarea:");
+
         dialog.showAndWait().ifPresent(descripcion -> {
-            Tarea tarea = new Tarea(descripcion, this);
-            tareas.add(tarea);
-            tarea.start();
+            // Obtener la descripción de la tarea
+            int numHilos = 1; // Valor por defecto
+
+            // Mostrar el cuadro de diálogo para el número de hilos y obtener la respuesta
+            Optional<String> result = numHilosDialog.showAndWait();
+            if (result.isPresent()) {
+                try {
+                    numHilos = Integer.parseInt(result.get());
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Crear y agregar la tarea con el número de hilos especificado
+            for (int i = 0; i < numHilos; i++) {
+                Tarea tarea = new Tarea(descripcion, this);
+                tareas.add(tarea);
+                tarea.start();
+            }
+
+            // Actualizar la tabla
             actualizarTabla();
 
-
+            // Mostrar información sobre la tarea agregada
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Información de Tarea");
             alert.setHeaderText(null);
-            alert.setContentText("Tarea agregada. Tiempo estimado: " + tarea.getTiempo() + " s");
+            alert.setContentText("Tarea agregada. Tiempo estimado: " + tareas.get(tareas.size() - 1).getTiempo() + " s");
             alert.showAndWait();
         });
     }
+
+
+
+    private void agregarTareasPorTurnos() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Tareas por turnos");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Ingrese la descripción de la tarea:");
+
+        TextInputDialog numTrabajadoresDialog = new TextInputDialog();
+        numTrabajadoresDialog.setTitle("Número de trabajadores");
+        numTrabajadoresDialog.setHeaderText(null);
+        numTrabajadoresDialog.setContentText("Ingrese el número de trabajadores:");
+
+        dialog.showAndWait().ifPresent(descripcion -> {
+            // Obtener la descripción de la tarea
+            int numTrabajadores = 1; // Valor por defecto
+
+            // Mostrar el cuadro de diálogo para el número de trabajadores y obtener la respuesta
+            Optional<String> result = numTrabajadoresDialog.showAndWait();
+            if (result.isPresent()) {
+                try {
+                    numTrabajadores = Integer.parseInt(result.get());
+
+                    // Crear una variable final para usar en la expresión lambda
+                    final int numTrabajadoresFinal = numTrabajadores;
+
+                    // Crear un hilo para agregar y sincronizar las tareas por turnos
+                    Thread tareaTurnosThread = new Thread(() -> {
+                        try {
+                            double tiempoTotal = 0;
+
+                            // Crear y agregar las tareas por turnos
+                            for (int i = 0; i < numTrabajadoresFinal; i++) {
+                                String nombreTrabajador = "Trabajador " + (i + 1); // Nombre único para cada trabajador
+                                Tarea tarea = new Tarea(descripcion + " - " + nombreTrabajador, this);
+                                tareas.add(tarea);
+                                tarea.start();
+
+                                // Esperar a que la tarea actual termine antes de continuar
+                                tarea.join();
+
+                                // Sumar el tiempo estimado de la tarea actual al tiempo total
+                                tiempoTotal += tarea.getTiempo();
+
+                                // Esperar un tiempo antes de iniciar la próxima tarea
+                                Thread.sleep(1000); // Puedes ajustar el tiempo de espera según tus necesidades
+                            }
+
+                            // Actualizar la tabla
+                            Platform.runLater(() -> actualizarTabla());
+
+                            // Mostrar información sobre las tareas por turnos
+                            double finalTiempoTotal = tiempoTotal;
+                            Platform.runLater(() -> {
+                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                alert.setTitle("Información de Tareas por turnos");
+                                alert.setHeaderText(null);
+
+                                // Mostrar información detallada de cada trabajador
+                                for (int i = 0; i < numTrabajadoresFinal; i++) {
+                                    alert.setContentText(alert.getContentText() +
+                                            "Trabajador " + (i + 1) + ": " +
+                                            tareas.get(i).getDescripcion() + " - Tiempo: " +
+                                            tareas.get(i).getTiempo() + " s\n");
+                                }
+
+                                // Mostrar el tiempo total estimado
+                                alert.setContentText(alert.getContentText() +
+                                        "Tiempo total estimado: " + finalTiempoTotal + " s\n");
+
+                                alert.showAndWait();
+                            });
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+
+                    tareaTurnosThread.start(); // Iniciar el hilo
+
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+
+
 
     /**
      * Método privado que se llama al hacer clic en el botón "Completar Tarea".
@@ -169,9 +300,10 @@ public class MainApp extends Application {
     /**
      * Método que actualiza la tabla de tareas con la lista actualizada.
      */
-    public void actualizarTabla() {
+    public synchronized void actualizarTabla() {
         tablaTareas.getItems().setAll(tareas);
     }
+
 
     /**
      * Método que registra la información de una tarea completada en un archivo de texto.
