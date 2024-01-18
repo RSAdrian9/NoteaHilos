@@ -186,7 +186,12 @@ public class MainApp extends Application {
     }
 
 
-
+    /**
+     * Método privado que se llama al hacer clic en el botón "Tareas por turnos".
+     * Muestra un cuadro de diálogo para ingresar la descripción de la tarea y
+     * el número de trabajadores, luego agrega tareas por turnos a la lista y
+     * actualiza la tabla con la información detallada.
+     */
     private void agregarTareasPorTurnos() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Tareas por turnos");
@@ -299,6 +304,7 @@ public class MainApp extends Application {
 
     /**
      * Método que actualiza la tabla de tareas con la lista actualizada.
+     * Sincroniza el acceso a la lista de tareas y actualiza la interfaz gráfica.
      */
     public synchronized void actualizarTabla() {
         tablaTareas.getItems().setAll(tareas);
@@ -307,9 +313,8 @@ public class MainApp extends Application {
 
     /**
      * Método que registra la información de una tarea completada en un archivo de texto.
-     *
      * @param descripcion La descripción de la tarea completada.
-     * @param tiempo      El tiempo transcurrido en la tarea.
+     * @param tiempo El tiempo transcurrido en la tarea.
      */
     public void registrarTareaCompletada(String descripcion, double tiempo) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("registro_tareas.txt", true))) {
