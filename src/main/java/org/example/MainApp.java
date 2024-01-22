@@ -25,6 +25,7 @@ public class MainApp extends Application {
     private List<Tarea> tareas = new ArrayList<>();
     private TableView<Tarea> tablaTareas;
 
+
     /**
      * Método principal que lanza la aplicación.
      *
